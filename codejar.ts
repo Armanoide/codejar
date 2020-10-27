@@ -33,6 +33,8 @@ export function CodeJar(editor: HTMLElement, highlight: (e: HTMLElement) => void
   let callback: (code: string) => void | undefined
   let prev: string // code content prior keydown event
   let isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1
+  let isSafari = navigator.userAgent.toLowerCase().indexOf("safari") > -1
+  let isChrome = navigator.userAgent.toLowerCase().indexOf("chrome") > -1
 
   editor.setAttribute("contentEditable", isFirefox ? "true" : "plaintext-only")
   editor.setAttribute("spellcheck", options.spellcheck ? "true" : "false")
@@ -228,7 +230,17 @@ export function CodeJar(editor: HTMLElement, highlight: (e: HTMLElement) => void
       if (isFirefox) {
         preventDefault(event)
         insert("\n" + newLinePadding)
-      } else {
+      } else if (isSafari && !isChrome) {
+        preventDefault(event)
+        insert("\n" + newLinePadding + "\n\n")
+
+        {//fix
+          const pos = save()
+          preventDefault(event)
+          pos.start = --pos.end
+          restore(pos)
+        }
+      }  else {
         // Normal browsers
         if (newLinePadding.length > 0) {
           preventDefault(event)
